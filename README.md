@@ -7,7 +7,7 @@ The librairy has been edited so that it doesn't need EEPROM to save configuratio
 
 It will use variables to hold data until the microcontroller power off.
 
-It MAY be possible to use FlashStorage ( https://github.com/cmaglie/FlashStorage ) to emulate EEPROM and save data like that.
+It MAY be possible to use FlashStorage ( https://github.com/cmaglie/FlashStorage ) to emulate EEPROM by "burning" data onto the flash. (For the moment, I don't want to delve into this witchcraft.)
 
 Original README.md : 
 
