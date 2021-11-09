@@ -1,14 +1,15 @@
 ## DFRobot_EC Library (No EEPROM)
 ---------------------------------------------------------
 
-THIS IS STILL A WIP
+========== THIS IS STILL A WIP ==========
 
 The librairy has been edited so that it doesn't need EEPROM to save configurations.
+
 It will use variables to hold data until the microcontroller power off.
+
 It MAY be possible to use FlashStorage ( https://github.com/cmaglie/FlashStorage ) to emulate EEPROM and save data like that.
 
-======================================================================================================
-======================================== Original README.md : ========================================
+Original README.md : 
 
 This is the sample code for Gravity: Analog Electrical Conductivity Sensor / Meter Kit V2 (K=1.0), SKU: DFR0300.
 ## Table of Contents
