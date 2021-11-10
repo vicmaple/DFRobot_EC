@@ -19,10 +19,12 @@
 #endif
 
 #include "DFRobot_EC.h"
-#include <EEPROM.h>
+//#include <EEPROM.h>
 
+/*
 #define EEPROM_write(address, p) {int i = 0; byte *pp = (byte*)&(p);for(; i < sizeof(p); i++) EEPROM.write(address+i, pp[i]);}
 #define EEPROM_read(address, p)  {int i = 0; byte *pp = (byte*)&(p);for(; i < sizeof(p); i++) pp[i]=EEPROM.read(address+i);}
+*/
 
 #define KVALUEADDR 0x0A    //the start address of the K value stored in the EEPROM
 #define RES2 820.0
@@ -44,6 +46,10 @@ DFRobot_EC::~DFRobot_EC()
 
 }
 
+
+//Since I'm not dealing with EEPROM anymore, I can ignore calling this function at all.
+//I'm gonna keep this here in case I want to emulate EEPROM on flash somehow.
+/*
 void DFRobot_EC::begin()
 {
     EEPROM_read(KVALUEADDR, this->_kvalueLow);        //read the calibrated K value from EEPROM
@@ -58,6 +64,7 @@ void DFRobot_EC::begin()
     }
     this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow
 }
+*/
 
 float DFRobot_EC::readEC(float voltage, float temperature)
 {
@@ -153,21 +160,26 @@ void DFRobot_EC::ecCalibration(byte mode)
     static boolean enterCalibrationFlag = 0;
     static float compECsolution;
     float KValueTemp;
+
     switch(mode){
-        case 0:
+        case 0: // If user inputs nothing or invalid command, msg error in serial
         if(enterCalibrationFlag){
             Serial.println(F(">>>Command Error<<<"));
         }
         break;
-        case 1:
-        enterCalibrationFlag = 1;
-        ecCalibrationFinish  = 0;
+
+
+        case 1: // If user inputs "ENTEREC", enter Calibration mode. Just raises flags.
+        enterCalibrationFlag = 1; 
+        ecCalibrationFinish  = 0; 
         Serial.println();
         Serial.println(F(">>>Enter EC Calibration Mode<<<"));
         Serial.println(F(">>>Please put the probe into the 1413us/cm or 12.88ms/cm buffer solution<<<"));
         Serial.println();
         break;
-        case 2:
+
+
+        case 2: // If user inputs "CALEC", start calibrating.
         if(enterCalibrationFlag){
             if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){                         //recognize 1.413us/cm buffer solution
                 compECsolution = 1.413*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
@@ -198,15 +210,20 @@ void DFRobot_EC::ecCalibration(byte mode)
             }
         }
         break;
-        case 3:
+
+        case 3: // If user inputs "EXITEC", "save" the relevant config. Instead of saving to EEPROM, we'll store the data into variables or an array in the class.
         if(enterCalibrationFlag){
                 Serial.println();
+
+                //Don't need this here for now. Still need if statement to check flags.
                 if(ecCalibrationFinish){   
+                    /*
                     if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
                         EEPROM_write(KVALUEADDR, this->_kvalueLow);
                     }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
                         EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
                     }
+                    */
                     Serial.print(F(">>>Calibration Successful"));
                 }else{
                     Serial.print(F(">>>Calibration Failed"));
