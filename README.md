@@ -3,13 +3,25 @@
 
 ========== THIS IS STILL A WIP ==========
 
-The librairy has been edited so that it doesn't need EEPROM to save configurations.
+This fork adds a second library that uses the same class and methods of the original DFRobot_EC library, but without using EEPROM.
 
-It will use variables to hold data until the microcontroller power off.
+I made this because the library is perfect for what I want to do, but my microcontroller has no EEPROM chip at all. (See MKR Arduino series)
+
+The calibration data will be held by the object until the microcontroller power off.
 
 It MAY be possible to use FlashStorage ( https://github.com/cmaglie/FlashStorage ) to emulate EEPROM by "burning" data onto the flash. (For the moment, I don't want to delve into this witchcraft.)
 
-Original README.md : 
+Usage is the same. You don't need to call begin() anymore. begin() would only fetch data from memory which... well, we aren't using.
+
+## Main Changes 
+
+ - New library added : DFRobot_EC_NO_EEPROM
+ 
+ - Inside DFRobot_EC_NO_EEPROM:
+    - begin() has been removed
+    - Parts of ecCalibration dealing with memory has been removed
+
+Original README.md Ahead : 
 
 This is the sample code for Gravity: Analog Electrical Conductivity Sensor / Meter Kit V2 (K=1.0), SKU: DFR0300.
 ## Table of Contents

@@ -1,6 +1,6 @@
 /*
- * file DFRobot_EC.cpp
- * @ https://github.com/DFRobot/DFRobot_EC
+ * file DFRobot_EC_NO_EEPROM.cpp
+ * @ https://github.com/DFRobot/DFRobot_EC_NO_EEPROM
  *
  * Arduino library for Gravity: Analog Electrical Conductivity Sensor / Meter Kit V2 (K=1), SKU: DFR0300
  *
@@ -18,17 +18,12 @@
 #include "WProgram.h"
 #endif
 
-#include "DFRobot_EC.h"
-#include <EEPROM.h>
+#include "DFRobot_EC_NO_EEPROM.h"
 
-#define EEPROM_write(address, p) {int i = 0; byte *pp = (byte*)&(p);for(; i < sizeof(p); i++) EEPROM.write(address+i, pp[i]);}
-#define EEPROM_read(address, p)  {int i = 0; byte *pp = (byte*)&(p);for(; i < sizeof(p); i++) pp[i]=EEPROM.read(address+i);}
-
-#define KVALUEADDR 0x0A    //the start address of the K value stored in the EEPROM
 #define RES2 820.0
 #define ECREF 200.0
 
-DFRobot_EC::DFRobot_EC()
+DFRobot_EC_NO_EEPROM::DFRobot_EC_NO_EEPROM()
 {
     this->_ecvalue                = 0.0;
     this->_kvalue                 = 1.0;
@@ -39,27 +34,15 @@ DFRobot_EC::DFRobot_EC()
     this->_temperature            = 25.0;
 } 
 
-DFRobot_EC::~DFRobot_EC()
+DFRobot_EC_NO_EEPROM::~DFRobot_EC_NO_EEPROM()
 {
 
 }
 
-void DFRobot_EC::begin()
-{
-    EEPROM_read(KVALUEADDR, this->_kvalueLow);        //read the calibrated K value from EEPROM
-    if(EEPROM.read(KVALUEADDR)==0xFF && EEPROM.read(KVALUEADDR+1)==0xFF && EEPROM.read(KVALUEADDR+2)==0xFF && EEPROM.read(KVALUEADDR+3)==0xFF){
-        this->_kvalueLow = 1.0;                       // For new EEPROM, write default value( K = 1.0) to EEPROM
-        EEPROM_write(KVALUEADDR, this->_kvalueLow);
-    }
-    EEPROM_read(KVALUEADDR+4, this->_kvalueHigh);     //read the calibrated K value from EEPRM
-    if(EEPROM.read(KVALUEADDR+4)==0xFF && EEPROM.read(KVALUEADDR+5)==0xFF && EEPROM.read(KVALUEADDR+6)==0xFF && EEPROM.read(KVALUEADDR+7)==0xFF){
-        this->_kvalueHigh = 1.0;                      // For new EEPROM, write default value( K = 1.0) to EEPROM
-        EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
-    }
-    this->_kvalue =  this->_kvalueLow;                // set default K value: K = kvalueLow
-}
 
-float DFRobot_EC::readEC(float voltage, float temperature)
+//Since I'm not dealing with EEPROM anymore, I can delete begin()
+
+float DFRobot_EC_NO_EEPROM::readEC(float voltage, float temperature)
 {
     float value = 0,valueTemp = 0;
     this->_rawEC = 1000*voltage/RES2/ECREF;
@@ -78,7 +61,7 @@ float DFRobot_EC::readEC(float voltage, float temperature)
     return value;
 }
 
-void DFRobot_EC::calibration(float voltage, float temperature,char* cmd)
+void DFRobot_EC_NO_EEPROM::calibration(float voltage, float temperature,char* cmd)
 {   
     this->_voltage = voltage;
     this->_temperature = temperature;
@@ -86,7 +69,7 @@ void DFRobot_EC::calibration(float voltage, float temperature,char* cmd)
     ecCalibration(cmdParse(cmd));                     //if received Serial CMD from the serial monitor, enter into the calibration mode
 }
 
-void DFRobot_EC::calibration(float voltage, float temperature)
+void DFRobot_EC_NO_EEPROM::calibration(float voltage, float temperature)
 {   
     this->_voltage = voltage;
     this->_temperature = temperature;
@@ -97,7 +80,7 @@ void DFRobot_EC::calibration(float voltage, float temperature)
     }
 }
 
-boolean DFRobot_EC::cmdSerialDataAvailable()
+boolean DFRobot_EC_NO_EEPROM::cmdSerialDataAvailable()
 {
     char cmdReceivedChar;
     static unsigned long cmdReceivedTimeOut = millis();
@@ -121,7 +104,7 @@ boolean DFRobot_EC::cmdSerialDataAvailable()
     return false;
 }
 
-byte DFRobot_EC::cmdParse(const char* cmd)
+byte DFRobot_EC_NO_EEPROM::cmdParse(const char* cmd)
 {
     byte modeIndex = 0;
     if(strstr(cmd, "ENTEREC")      != NULL){
@@ -134,7 +117,7 @@ byte DFRobot_EC::cmdParse(const char* cmd)
     return modeIndex;
 }
 
-byte DFRobot_EC::cmdParse()
+byte DFRobot_EC_NO_EEPROM::cmdParse()
 {
     byte modeIndex = 0;
     if(strstr(this->_cmdReceivedBuffer, "ENTEREC")     != NULL)
@@ -146,28 +129,33 @@ byte DFRobot_EC::cmdParse()
     return modeIndex;
 }
 
-void DFRobot_EC::ecCalibration(byte mode)
+void DFRobot_EC_NO_EEPROM::ecCalibration(byte mode)
 {
     char *receivedBufferPtr;
     static boolean ecCalibrationFinish  = 0;
     static boolean enterCalibrationFlag = 0;
     static float compECsolution;
     float KValueTemp;
+
     switch(mode){
-        case 0:
+        case 0: // If user inputs nothing or invalid command, msg error in serial
         if(enterCalibrationFlag){
             Serial.println(F(">>>Command Error<<<"));
         }
         break;
-        case 1:
-        enterCalibrationFlag = 1;
-        ecCalibrationFinish  = 0;
+
+
+        case 1: // If user inputs "ENTEREC", enter Calibration mode. Just raises flags.
+        enterCalibrationFlag = 1; 
+        ecCalibrationFinish  = 0; 
         Serial.println();
         Serial.println(F(">>>Enter EC Calibration Mode<<<"));
         Serial.println(F(">>>Please put the probe into the 1413us/cm or 12.88ms/cm buffer solution<<<"));
         Serial.println();
         break;
-        case 2:
+
+
+        case 2: // If user inputs "CALEC", start calibrating.
         if(enterCalibrationFlag){
             if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){                         //recognize 1.413us/cm buffer solution
                 compECsolution = 1.413*(1.0+0.0185*(this->_temperature-25.0));  //temperature compensation
@@ -198,15 +186,13 @@ void DFRobot_EC::ecCalibration(byte mode)
             }
         }
         break;
-        case 3:
+
+        case 3: // If user inputs "EXITEC", "save" the relevant config. Instead of saving to EEPROM, we'll store the data into variables or an array in the class.
         if(enterCalibrationFlag){
                 Serial.println();
+
+                //Removed EEPROM saves.
                 if(ecCalibrationFinish){   
-                    if((this->_rawEC>0.9)&&(this->_rawEC<1.9)){
-                        EEPROM_write(KVALUEADDR, this->_kvalueLow);
-                    }else if((this->_rawEC>9)&&(this->_rawEC<16.8)){
-                        EEPROM_write(KVALUEADDR+4, this->_kvalueHigh);
-                    }
                     Serial.print(F(">>>Calibration Successful"));
                 }else{
                     Serial.print(F(">>>Calibration Failed"));
@@ -219,3 +205,8 @@ void DFRobot_EC::ecCalibration(byte mode)
         break;
     }
 }
+
+
+
+
+
