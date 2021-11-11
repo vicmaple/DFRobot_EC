@@ -21,7 +21,7 @@ Usage is the same. You don't need to call begin() anymore. begin() would only fe
     - begin() has been removed
     - Parts of ecCalibration dealing with memory has been removed
 
-Original README.md Ahead : 
+## Original README.md 
 
 This is the sample code for Gravity: Analog Electrical Conductivity Sensor / Meter Kit V2 (K=1.0), SKU: DFR0300.
 ## Table of Contents
